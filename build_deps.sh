@@ -37,7 +37,7 @@ v=3.2.0
   wget -q http://download.osgeo.org/gdal/${v}/gdal-${v}.tar.gz
   tar -xf gdal-${v}.tar.gz
   cd gdal-${v}
-  ./configure --with-geos=yes --with-netcdf
+  ./configure --with-geos=yes --with-netcdf --with-proj=/usr
   make -j4
   make install
 )
