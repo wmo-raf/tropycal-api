@@ -10,6 +10,4 @@ from troapi.services import StormService
 def update_storms(jtwc_source):
     logging.info("[STORMS]: Running Update storms command")
 
-    print(jtwc_source)
-
     StormService.update_storms()
