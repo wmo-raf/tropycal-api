@@ -1,11 +1,16 @@
 """Storm SERVICE """
 
 import logging
+import os
+import shutil
+
+import tempfile
 
 from tropycal import realtime
+from tropycal.realtime import RealtimeStorm
 
 from troapi import app, db
-from troapi.errors import StormNotFound
+from troapi.errors import StormNotFound, StormHasNoForecast
 from troapi.models import Storm, StormForecast
 
 
@@ -143,6 +148,47 @@ class StormService(object):
             raise StormNotFound(message=f"Storm with id {storm_id} does not exist")
 
         return storm
+
+    @staticmethod
+    def plot_storm(storm_id, forecast=False):
+        logging.info(f"[SERVICE]: Getting storm {storm_id} ")
+        logging.info('[DB]: QUERY')
+
+        try:
+            storm = Storm.query.get(storm_id)
+        except Exception as error:
+            raise error
+
+        if not storm:
+            raise StormNotFound(message=f"Storm with id {storm_id} does not exist")
+
+        storm_data = storm.storm_object
+
+        if forecast and storm.invest:
+            raise StormHasNoForecast(message="Storm is invest and has no forecast")
+
+        realtime_storm = RealtimeStorm(storm_data)
+
+        tmp_plot_file = tempfile.NamedTemporaryFile(mode='w+b', suffix=".png")
+
+        if not forecast:
+            realtime_storm.plot(save_path=tmp_plot_file.name)
+            return tmp_plot_file
+        else:
+            temp_dir = tempfile.mkdtemp()
+
+            realtime_storm.plot_forecast_realtime(save_path=temp_dir)
+
+            for filename in os.listdir(temp_dir):
+                f = os.path.join(temp_dir, filename)
+
+                if f.endswith("_track.png"):
+                    # move to temp file
+                    shutil.move(f, tmp_plot_file.name)
+                    os.rmdir(temp_dir)
+                break
+
+        return tmp_plot_file
 
     @staticmethod
     def update_storms(jtwc_source="jtwc"):

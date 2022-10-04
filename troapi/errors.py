@@ -15,3 +15,7 @@ class Error(Exception):
 
 class StormNotFound(Error):
     pass
+
+
+class StormHasNoForecast(Error):
+    pass
