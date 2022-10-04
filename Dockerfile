@@ -39,9 +39,11 @@ RUN pip install --upgrade pip
 COPY ./requirements.txt /usr/src/app/requirements.txt
 RUN pip install -r requirements.txt
 
-# reinstall shapely
+# uninstall shapely
 # we have a custom geos, thus install shapely this way
 RUN pip install --ignore-installed --no-binary :all: shapely
+
+RUN pip install gunicorn
 
 # Clean up
 RUN apt-get update -y \
