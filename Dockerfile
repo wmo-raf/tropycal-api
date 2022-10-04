@@ -28,7 +28,7 @@ RUN apt-get update \
 
 # Install gdal, geos and proj
 COPY ./build_deps.sh /
-RUN ./build_deps.sh
+RUN /build_deps.sh
 
 # Clean up
 RUN apt-get update -y \
