@@ -145,6 +145,7 @@ class Storm(db.Model):
             "mslp": self.mslp,
             "lon": self.lon,
             "lat": self.lat,
+            "wmo_basin": self.wmo_basin
         }
 
 
