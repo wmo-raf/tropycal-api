@@ -39,9 +39,9 @@ RUN pip install --upgrade pip
 COPY ./requirements.txt /usr/src/app/requirements.txt
 RUN pip install -r requirements.txt
 
-# uninstall shapely
-# we have a custom geos, thus install shapely this way
+# we have a custom geos, thus install shapely this way, then cartopy
 RUN pip install --ignore-installed --no-binary :all: shapely
+RUN pip install Cartopy
 
 RUN pip install gunicorn
 
