@@ -12,6 +12,7 @@ ENV PYTHONUNBUFFERED 1
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
+        g++ \
         lsb-release \
         wget \
         automake libtool pkg-config libsqlite3-dev sqlite3 \
