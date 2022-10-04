@@ -16,7 +16,6 @@ RUN apt-get update \
         automake \
         libtool \
         build-essential \
-        g++ \
         lsb-release \
         wget \
         automake libtool pkg-config libsqlite3-dev sqlite3 \
