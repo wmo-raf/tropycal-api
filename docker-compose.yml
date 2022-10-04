@@ -14,7 +14,7 @@ services:
     volumes:
       - troapi_db_data:/var/lib/postgresql/data/
   troapi:
-    build: ./troapi
+    build: .
     image: ${API_IMAGE}
     container_name: troapi
     command: gunicorn --bind 0.0.0.0:8000 troapi:app
