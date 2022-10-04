@@ -3,7 +3,7 @@ version: '3.8'
 services:
   troapi_db:
     image: postgis/postgis:12-master
-    container_name: pg_db
+    container_name: troapi_db
     restart: ${RESTART_POLICY}
     environment:
       - POSTGRES_DB=${DB_NAME}

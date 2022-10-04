@@ -1,5 +1,4 @@
 import logging
-import os
 import sys
 
 from flask import Flask
@@ -7,7 +6,7 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from healthcheck import HealthCheck
-from apscheduler.schedulers.background import BackgroundScheduler
+from troapi.scheduler import scheduler
 
 from troapi.config import SETTINGS
 
@@ -95,6 +94,10 @@ def internal_server_error(e):
 from troapi import commands
 
 app.cli.add_command(commands.update_storms)
+
+from troapi import tasks
+
+scheduler.start()
 #
 # scheduler = BackgroundScheduler()
 # # in your case you could change seconds to hours

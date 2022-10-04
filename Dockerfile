@@ -45,7 +45,10 @@ RUN pip install gunicorn
 RUN apt-get update -y \
     && apt-get remove -y --purge build-essential wget \
     && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
+RUN chmod +x /wait
 
 # copy project
 COPY . /usr/src/app/

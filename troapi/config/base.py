@@ -11,6 +11,5 @@ SETTINGS = {
         'port': os.getenv('PORT')
     },
     'SQLALCHEMY_DATABASE_URI': os.getenv('SQLALCHEMY_DATABASE_URI'),
-    'ITEMS_PER_PAGE': int(os.getenv('ITEMS_PER_PAGE', 20)),
-    'ROLLBAR_SERVER_TOKEN': os.getenv('ROLLBAR_SERVER_TOKEN'),
+    'STORMS_MINUTES_UPDATE_INTERVAL': os.getenv('STORMS_MINUTES_UPDATE_INTERVAL', 5),
 }
