@@ -35,6 +35,7 @@ class Storm(db.Model):
     source_method = db.Column(db.String(255), nullable=True)
     source_url = db.Column(db.String(255), nullable=True)
     source = db.Column(db.String(255), nullable=True)
+    jtwc_source = db.Column(db.String(255), nullable=True)
     ace = db.Column(db.Float, nullable=True)
     prob_2day = db.Column(db.String(255), nullable=True)
     prob_5day = db.Column(db.String(255), nullable=True)
@@ -113,6 +114,38 @@ class Storm(db.Model):
             storm["track"] = storm["track"] + self.forecast.serialize()
 
         return storm
+
+    @property
+    def storm_object(self):
+        return {
+            'id': self.id,
+            'operational_id': self.operational_id,
+            'update_time': self.update_time,
+            'start_date': self.start_date,
+            'end_date': self.end_date,
+            'name': self.name,
+            'year': self.year,
+            'season': self.season,
+            'basin': self.basin,
+            'source_info': self.source_info,
+            'invest': self.invest,
+            'source_method': self.source_method,
+            'source_url': self.source_url,
+            'source': self.source,
+            "jtwc_source": self.jtwc_source,
+            'ace': self.ace,
+            'prob_2day': self.prob_2day,
+            'prob_5day': self.prob_5day,
+            'risk_2day': self.risk_2day,
+            'risk_5day': self.risk_5day,
+            'realtime': self.realtime,
+            "type": self.type,
+            "date": self.date,
+            "vmax": self.vmax,
+            "mslp": self.mslp,
+            "lon": self.lon,
+            "lat": self.lat,
+        }
 
 
 class StormForecast(db.Model):

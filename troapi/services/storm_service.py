@@ -22,8 +22,9 @@ def get_realtime_storm_data(storm, realtime_obj):
         other_info["end_date"] = storm_vars.get("date")[-1]
 
     other_info["update_time"] = realtime_obj.time
+    other_info["jtwc_source"] = realtime_obj.jtwc_source
 
-    data = {**storm_vars, **storm.attrs, **other_info}
+    data = {**storm_vars, **storm.attrs, **other_info, }
 
     return data
 
