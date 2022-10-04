@@ -38,6 +38,9 @@ RUN /build_deps.sh
 RUN pip install --upgrade pip
 COPY ./requirements.txt /usr/src/app/requirements.txt
 RUN pip install -r requirements.txt
+
+RUN pip install gunicorn
+
 # Clean up
 RUN apt-get update -y \
     && apt-get remove -y --purge build-essential wget \
