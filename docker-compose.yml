@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  troapi_db:
+    image: postgis/postgis:12-master
+    container_name: pg_db
+    restart: ${RESTART_POLICY}
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - ${DB_EXTERNAL_PORT}:5432
+    volumes:
+      - troapi_db_data:/var/lib/postgresql/data/
+  troapi:
+    build: ./troapi
+    image: ${API_IMAGE}
+    container_name: troapi
+    command: gunicorn --bind 0.0.0.0:8000 troapi:app
+    restart: ${RESTART_POLICY}
+    ports:
+      - "8000:8000"
+    environment:
+      - WAIT_HOSTS=troapi_db:5432
+      - WAIT_TIMEOUT=60
+      - SQLALCHEMY_DATABASE_URI=postgresql://${DB_USER}:${DB_PASSWORD}@pg_db:5432/${DB_NAME}
+      - FLASK_APP=troapi/__init__.py
+    depends_on:
+      - troapi_db
+volumes:
+  troapi_db_data:

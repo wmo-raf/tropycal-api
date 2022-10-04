@@ -34,16 +34,15 @@ RUN apt-get update \
 COPY ./build_deps.sh /
 RUN /build_deps.sh
 
+# install dependencies
+RUN pip install --upgrade pip
+COPY ./requirements.txt /usr/src/app/requirements.txt
+RUN pip install -r requirements.txt
 # Clean up
 RUN apt-get update -y \
     && apt-get remove -y --purge build-essential wget \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/*
-
-# install dependencies
-RUN pip install --upgrade pip
-COPY ./requirements.txt /usr/src/app/requirements.txt
-RUN pip install -r requirements.txt
 
 # copy project
 COPY . /usr/src/app/
