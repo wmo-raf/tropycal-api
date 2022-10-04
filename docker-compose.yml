@@ -17,14 +17,14 @@ services:
     build: .
     image: ${API_IMAGE}
     container_name: troapi
-    command: gunicorn --bind 0.0.0.0:8000 troapi:app
+    command: sh -c "/wait && gunicorn --bind 0.0.0.0:8000 troapi:app"
     restart: ${RESTART_POLICY}
     ports:
       - "8000:8000"
     environment:
       - WAIT_HOSTS=troapi_db:5432
       - WAIT_TIMEOUT=60
-      - SQLALCHEMY_DATABASE_URI=postgresql://${DB_USER}:${DB_PASSWORD}@pg_db:5432/${DB_NAME}
+      - SQLALCHEMY_DATABASE_URI=postgresql://${DB_USER}:${DB_PASSWORD}@troapi_db:5432/${DB_NAME}
       - FLASK_APP=troapi/__init__.py
     depends_on:
       - troapi_db

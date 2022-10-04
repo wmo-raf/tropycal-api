@@ -155,8 +155,6 @@ class StormService(object):
             # get all active storms
             realtime_storm_list = realtime_obj.list_active_storms()
 
-            print(realtime_storm_list)
-
             # get storms previously added to database
             db_realtime_storms = StormService.get_realtime_storms()
 
