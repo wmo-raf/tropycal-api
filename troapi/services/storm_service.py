@@ -177,7 +177,9 @@ class StormService(object):
         else:
             temp_dir = tempfile.mkdtemp()
 
-            realtime_storm.plot_forecast_realtime(save_path=temp_dir)
+            ssl_certficate = False
+
+            realtime_storm.plot_forecast_realtime(save_path=temp_dir, ssl_certificate=False)
 
             for filename in os.listdir(temp_dir):
                 f = os.path.join(temp_dir, filename)
