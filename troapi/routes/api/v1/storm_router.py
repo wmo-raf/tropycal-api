@@ -34,6 +34,22 @@ def get_realtime_storms():
     return jsonify(**response), 200
 
 
+@endpoints.route('/storms/realtime/<storm_id>', strict_slashes=False, methods=['GET'])
+def get_storm(storm_id):
+    try:
+        storm = StormService.get_storm(storm_id)
+    except StormNotFound as e:
+        logging.error('[ROUTER]: ' + e.message)
+        return error(status=404, detail=e.message)
+    except Exception as e:
+        logging.error('[ROUTER]: ' + str(e))
+        return error(status=500, detail='Generic Error')
+
+    response = storm.serialize()
+
+    return jsonify(**response), 200
+
+
 @endpoints.route('/storms/realtime/<storm_id>/plot', strict_slashes=False, methods=['GET'])
 def get_storm_plot(storm_id):
     args = request.args
