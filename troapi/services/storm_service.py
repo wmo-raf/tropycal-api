@@ -36,7 +36,7 @@ def get_realtime_storm_data(storm, realtime_obj):
 
 def get_realtime_storm_forecast(storm):
     try:
-        forecast_data = storm.get_forecast_realtime()
+        forecast_data = storm.get_forecast_realtime(ssl_certificate=False)
         data = {**forecast_data}
         return data
     except Exception as e:
