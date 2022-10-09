@@ -64,6 +64,9 @@ def create_or_update_storm_forecast(realtime_storm, db_storm):
                     logging.info(f"Updated Storm Forecast: {db_storm.id} ")
                 except Exception as e:
                     print(e)
+                    db.session.rollback()
+                finally:
+                    db.session.close()
             else:
                 db_storm_forecast = StormForecast(**forecast_data, storm_id=db_storm.id)
 
@@ -73,8 +76,10 @@ def create_or_update_storm_forecast(realtime_storm, db_storm):
                     db.session.commit()
                     logging.info(f"Created Storm Forecast for: {db_storm.id} ")
                 except Exception as e:
-                    print("Error", e)
-                    raise e
+                    print(e)
+                    db.session.rollback()
+                finally:
+                    db.session.close()
 
 
 def update_storm(db_storm, realtime_storm, realtime_obj):
@@ -89,6 +94,7 @@ def update_storm(db_storm, realtime_storm, realtime_obj):
 
         logging.info(f"Updated Storm: {db_storm.id} ")
     except Exception as e:
+        db.session.rollback()
         print(e)
 
     if not realtime_storm.invest:
@@ -105,6 +111,7 @@ def create_storm(realtime_storm, realtime_obj):
         db.session.commit()
         logging.info(f"Created storm: {db_storm.id} ")
     except Exception as e:
+        db.session.rollback()
         print("Error", e)
         raise e
 
@@ -210,10 +217,15 @@ class StormService(object):
             existing_storms = []
 
             for db_storm in db_realtime_storms:
+
                 if db_storm.id not in realtime_storm_list:
-                    # realtime db storm not in updated realtime list, proceed to mark as not realtime
-                    db_storm.realtime = False
-                    db.session.commit()
+                    try:
+                        # realtime db storm not in updated realtime list, proceed to mark as not realtime
+                        db_storm.realtime = False
+                        db.session.commit()
+                    except Exception as e:
+                        print(e)
+                        db.session.rollback()
                 else:
                     # we have new realtime, proceed to update storm
                     storm = realtime_obj.get_storm(db_storm.id)
