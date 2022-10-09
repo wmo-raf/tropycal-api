@@ -217,7 +217,6 @@ class StormService(object):
             existing_storms = []
 
             for db_storm in db_realtime_storms:
-
                 if db_storm.id not in realtime_storm_list:
                     try:
                         # realtime db storm not in updated realtime list, proceed to mark as not realtime
