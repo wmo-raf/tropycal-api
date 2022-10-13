@@ -97,22 +97,46 @@ def update_storm(db_storm, realtime_storm, realtime_obj):
         create_or_update_storm_forecast(realtime_storm, db_storm)
 
 
-def create_storm(realtime_storm, realtime_obj):
+def create_or_update_storm(storm_id, realtime_obj):
+    realtime_storm = realtime_obj.get_storm(storm_id)
+
     data = get_realtime_storm_data(realtime_storm, realtime_obj)
-    db_storm = Storm(**data)
 
     try:
-        logging.info('[DB]: ADD STORM')
-        db.session.add(db_storm)
-        db.session.commit()
-        logging.info(f"Created storm: {db_storm.id} ")
+        db_storm = StormService.get_storm(storm_id)
     except Exception as e:
         db.session.rollback()
-        print("Error", e)
-        raise e
+        db_storm = None
 
-    if not realtime_storm.invest:
-        create_or_update_storm_forecast(realtime_storm, db_storm)
+    # update storm already in database
+    if db_storm:
+        # loop all data keys, check if key is in db_storm, and assign new value
+        for key in data:
+            if hasattr(db_storm, key):
+                setattr(db_storm, key, data[key])
+        # update
+        try:
+            logging.info('[DB]: UPDATE STORM')
+            db.session.commit()
+            logging.info(f"Updated Storm: {db_storm.id} ")
+        except Exception as e:
+            db.session.rollback()
+    else:
+        # create new storm
+        db_storm = Storm(**data)
+
+        try:
+            logging.info('[DB]: ADD STORM')
+            db.session.add(db_storm)
+            db.session.commit()
+            logging.info(f"Created storm: {db_storm.id} ")
+        except Exception as e:
+            db.session.rollback()
+            print("Error", e)
+            raise e
+
+        if not realtime_storm.invest:
+            create_or_update_storm_forecast(realtime_storm, db_storm)
 
 
 class StormService(object):
@@ -205,13 +229,16 @@ class StormService(object):
             # get all active storms
             realtime_storm_list = realtime_obj.list_active_storms()
 
-            # get storms previously added to database
+            # get all realtime storms from database
             db_realtime_storms = StormService.get_realtime_storms()
 
+            # storms in db matching incoming realtime storms
             existing_storms = []
 
             for db_storm in db_realtime_storms:
-                if db_storm.id not in realtime_storm_list:
+                if db_storm.id in realtime_storm_list:
+                    existing_storms.append(db_storm.id)
+                else:
                     try:
                         # realtime db storm not in updated realtime list, proceed to mark as not realtime
                         db_storm.realtime = False
@@ -219,20 +246,13 @@ class StormService(object):
                     except Exception as e:
                         print(e)
                         db.session.rollback()
-                else:
-                    # we have new realtime, proceed to update storm
-                    storm = realtime_obj.get_storm(db_storm.id)
-                    update_storm(db_storm, storm, realtime_obj)
-                    existing_storms.append(db_storm.id)
 
-            # new storms not added to db
+            # get new storms not added to db
             new_storms_list = list(set(realtime_storm_list) - set(existing_storms))
 
             for storm_id in new_storms_list:
-                # get storm
-                storm = realtime_obj.get_storm(storm_id)
-                # create
-                create_storm(storm, realtime_obj)
+                # create or update storms
+                create_or_update_storm(storm_id, realtime_obj)
 
         except Exception as e:
             print("Error", e)
