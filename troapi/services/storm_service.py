@@ -65,8 +65,6 @@ def create_or_update_storm_forecast(realtime_storm, db_storm):
                 except Exception as e:
                     print(e)
                     db.session.rollback()
-                finally:
-                    db.session.close()
             else:
                 db_storm_forecast = StormForecast(**forecast_data, storm_id=db_storm.id)
 
@@ -78,8 +76,6 @@ def create_or_update_storm_forecast(realtime_storm, db_storm):
                 except Exception as e:
                     print(e)
                     db.session.rollback()
-                finally:
-                    db.session.close()
 
 
 def update_storm(db_storm, realtime_storm, realtime_obj):
@@ -183,8 +179,6 @@ class StormService(object):
             return tmp_plot_file
         else:
             temp_dir = tempfile.mkdtemp()
-
-            ssl_certficate = False
 
             realtime_storm.plot_forecast_realtime(save_path=temp_dir, ssl_certificate=False)
 
