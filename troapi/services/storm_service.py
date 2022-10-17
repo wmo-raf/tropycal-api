@@ -6,6 +6,7 @@ import shutil
 import tempfile
 from datetime import datetime
 
+from sqlalchemy import desc
 from tropycal import realtime
 from tropycal.realtime import RealtimeStorm
 from werkzeug.utils import secure_filename
@@ -190,14 +191,32 @@ def create_storm_plots(realtime_storm, db_storm, update_time):
                 logging.error(f"[PLOTTING]: Error saving plot {plot_type} for storm {db_storm.id} to db, {e}")
                 db.session.rollback()
 
-    # create plots
-    create_plot("observed_track")
-    create_plot("forecast_model_tracks")
-    create_plot("forecast_gefs_density")
-    create_plot("forecast_gefs_tracks")
+    # get the latest created plot
+    latest_storm_plot = StormPlot.query.filter_by(storm_id=db_storm.id).order_by(desc(StormPlot.updated_on)).first()
 
-    if not realtime_storm.invest:
-        create_plot("latest_forecast")
+    can_create_plots = False
+
+    if latest_storm_plot:
+        logging.info(f"Latest plot found was updated on: {latest_storm_plot.updated_on.isoformat()}")
+        elapsed = update_time - latest_storm_plot.updated_on
+        # get time passed since last update
+        # we update plots if only 30 minutes have passed since the last update.
+        # This is implemented to save on disk space
+        if elapsed.total_seconds() >= 30 * 60:
+            can_create_plots = True
+    else:
+        # no storm plots found, allow creating new
+        can_create_plots = True
+
+    if can_create_plots:
+        # create plots
+        create_plot("observed_track")
+        create_plot("forecast_model_tracks")
+        create_plot("forecast_gefs_density")
+        create_plot("forecast_gefs_tracks")
+
+        if not realtime_storm.invest:
+            create_plot("latest_forecast")
 
 
 def update_storm(db_storm, realtime_storm, realtime_obj):
