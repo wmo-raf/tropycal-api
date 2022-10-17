@@ -2,14 +2,11 @@ import logging
 import io
 from flask import send_file
 
-import matplotlib
 from flask import jsonify, request
 
 from troapi.errors import StormNotFound, StormHasNoForecast
 from troapi.routes.api.v1 import endpoints, error
 from troapi.services import StormService
-
-matplotlib.use('Agg')
 
 
 @endpoints.route('/storms/realtime', strict_slashes=False, methods=['GET'])
@@ -80,3 +77,17 @@ def get_storm_plot(storm_id):
     except Exception as e:
         logging.error('[ROUTER]: ' + str(e))
         return error(status=500, detail='Generic Error')
+
+
+@endpoints.route('/storms/plots/recent', strict_slashes=False, methods=['GET'])
+def get_recent_plot():
+    """Get recent plot"""
+    logging.info('[ROUTER]: Getting recent plots')
+
+    try:
+        plot = StormService.get_recent_plot()
+    except Exception as e:
+        logging.error('[ROUTER]: ' + str(e))
+        return error(status=500, detail='Generic Error')
+
+    return jsonify(plot), 200

@@ -54,6 +54,7 @@ class Storm(db.Model):
     special = db.Column(MutableList.as_mutable(PickleType), nullable=True)
     wmo_basin = db.Column(MutableList.as_mutable(PickleType), nullable=False)
     forecast = db.relationship("StormForecast", back_populates="storm", uselist=False)
+    plot = db.relationship("StormPlot", back_populates="storm")
 
     def __init__(self, **kwargs):
         for column in kwargs:
@@ -153,7 +154,7 @@ class StormForecast(db.Model):
     __tablename__ = "storm_forecast"
 
     id = db.Column(db.Integer, primary_key=True)
-    storm_id = db.Column(db.String, db.ForeignKey('storm.id'))
+    storm_id = db.Column(db.String, db.ForeignKey('storm.id'), nullable=False)
     init = db.Column(db.DateTime, nullable=False)
     fhr = db.Column(MutableList.as_mutable(PickleType), nullable=False)
     lat = db.Column(MutableList.as_mutable(PickleType), nullable=False)
@@ -198,3 +199,33 @@ class StormForecast(db.Model):
             track.append(forecast)
 
         return track
+
+
+class StormPlot(db.Model):
+    __tablename__ = "storm_plot"
+
+    id = db.Column(db.Integer, primary_key=True)
+    storm_id = db.Column(db.String, db.ForeignKey('storm.id'), nullable=False)
+    updated_on = db.Column(db.DateTime, nullable=False)
+    plot_type = db.Column(db.String, nullable=False)
+    file_path = db.Column(db.String, nullable=False)
+
+    storm = db.relationship("Storm", back_populates="plot")
+
+    def __init__(self, storm_id, updated_on, plot_type, file_path):
+        self.storm_id = storm_id
+        self.updated_on = updated_on
+        self.plot_type = plot_type
+        self.file_path = file_path
+
+    def __repr__(self):
+        return '<StormPlot %r>' % self.id
+
+    def serialize(self):
+        """Return object data in easily serializable format"""
+
+        return {
+            "updated_on": self.updated_on,
+            "plot_type": self.plot_type,
+            "file_path": self.file_path
+        }

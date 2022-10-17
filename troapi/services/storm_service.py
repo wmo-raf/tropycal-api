@@ -3,15 +3,16 @@
 import logging
 import os
 import shutil
-
 import tempfile
+from datetime import datetime
 
 from tropycal import realtime
 from tropycal.realtime import RealtimeStorm
+from werkzeug.utils import secure_filename
 
 from troapi import app, db
 from troapi.errors import StormNotFound, StormHasNoForecast
-from troapi.models import Storm, StormForecast
+from troapi.models import Storm, StormForecast, Plot, PlotFile, StormPlot
 
 
 def get_realtime_storm_data(storm, realtime_obj):
@@ -78,6 +79,75 @@ def create_or_update_storm_forecast(realtime_storm, db_storm):
                     db.session.rollback()
 
 
+def create_storm_plots(realtime_storm, db_storm, update_time):
+    def get_file_path(storm_id, plot_type, dt):
+        date_path = f"storm_plots/{storm_id}/{dt.strftime('%Y%m%d')}/{dt.strftime('%H')}"
+
+        # make dir recursively, dont raise if exists
+        os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], date_path), exist_ok=True)
+
+        fn = dt.strftime("%Y_%m_%d-%H_%M_%S")
+
+        file_path = os.path.join(date_path, f"{plot_type}_{secure_filename(fn)}.png")
+
+        return file_path
+
+    def create_plot(plot_type):
+
+        file_path = None
+
+        if plot_type == "observed_track":
+            file_path = get_file_path(db_storm.id, plot_type, update_time)
+
+            realtime_storm.plot(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
+
+        if plot_type == "latest_forecast":
+            file_path = get_file_path(db_storm.id, plot_type, update_time)
+
+            realtime_storm.plot_forecast_realtime(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
+
+        if plot_type == "forecast_model_tracks":
+            file_path = get_file_path(db_storm.id, plot_type, update_time)
+
+            realtime_storm.plot_models(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
+
+        if plot_type == "forecast_gefs_density":
+            file_path = get_file_path(db_storm.id, plot_type, update_time)
+
+            realtime_storm.plot_ensembles(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
+
+        if plot_type == "forecast_gefs_tracks":
+            pass
+
+        if file_path:
+            try:
+                data = {
+                    "storm_id": db_storm.id,
+                    "updated_on": update_time,
+                    "plot_type": plot_type,
+                    "file_path": file_path
+                }
+
+                storm_plot = StormPlot(**data)
+
+                logging.info('[DB]: SAVE PLOT')
+                db.session.add(storm_plot)
+                db.session.commit()
+                logging.info(f"Created {plot_type} plot for storm: {db_storm.id}")
+            except Exception as e:
+                logging.error(f"[PLOTTING]: Error creating plot {e}")
+                db.session.rollback()
+
+    # create plots
+    create_plot("observed_track")
+    create_plot("forecast_model_tracks")
+    create_plot("forecast_gefs_density")
+    create_plot("forecast_gefs_tracks")
+
+    if not realtime_storm.invest:
+        create_plot("latest_forecast")
+
+
 def update_storm(db_storm, realtime_storm, realtime_obj):
     try:
         data = get_realtime_storm_data(realtime_storm, realtime_obj)
@@ -119,7 +189,16 @@ def create_or_update_storm(storm_id, realtime_obj):
             logging.info('[DB]: UPDATE STORM')
             db.session.commit()
             logging.info(f"Updated Storm: {db_storm.id} ")
+
+            # update storm forecast
+            if not realtime_storm.invest:
+                create_or_update_storm_forecast(realtime_storm, db_storm)
+
+            # create storm plots
+            create_storm_plots(realtime_storm, db_storm, realtime_obj.time)
+
         except Exception as e:
+            logging.error(f"[DB]: Error creating updating storm {e}")
             db.session.rollback()
     else:
         # create new storm
@@ -131,12 +210,14 @@ def create_or_update_storm(storm_id, realtime_obj):
             db.session.commit()
             logging.info(f"Created storm: {db_storm.id} ")
         except Exception as e:
+            logging.error(f"[DB]: Error creating storm {e}")
             db.session.rollback()
-            print("Error", e)
-            raise e
 
         if not realtime_storm.invest:
+            # update storm forecast
             create_or_update_storm_forecast(realtime_storm, db_storm)
+
+        create_storm_plots(realtime_storm, db_storm, realtime_obj.time)
 
 
 class StormService(object):
@@ -256,3 +337,70 @@ class StormService(object):
 
         except Exception as e:
             print("Error", e)
+
+    @staticmethod
+    def plot_summary(jtwc_source="jtwc"):
+        logging.info(f"[SERVICE]: Ploting realtime summary")
+
+        basins = {"all"}
+
+        # create realtime object
+        realtime_obj = realtime.Realtime(jtwc=True, jtwc_source=jtwc_source, ssl_certificate=False)
+
+        realtime_storms = realtime_obj.list_active_storms()
+
+        for storm_id in realtime_storms:
+            storm = realtime_obj.get_storm(storm_id)
+            basins.add(storm.attrs.get("basin"))
+
+        db_plot = Plot()
+
+        try:
+            db.session.add(db_plot)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
+
+            # generate plot for every basin
+        for basin in basins:
+            try:
+                dt = datetime.now()
+
+                date_path = f"summary_plots/{dt.strftime('%Y%m%d')}/{dt.strftime('%H')}"
+
+                # make dir recursively, dont raise if exists
+                os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], date_path), exist_ok=True)
+
+                fn = dt.strftime("%Y_%m_%d-%H_%M_%S")
+
+                file_path = os.path.join(date_path, f"{basin}_{secure_filename(fn)}.png")
+
+                realtime_obj.plot_summary(domain=basin, ssl_certificate=False,
+                                          save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
+
+                data = {
+                    "plot_id": db_plot.id,
+                    "basin": basin,
+                    "file_path": file_path
+                }
+
+                plot_file = PlotFile(**data)
+
+                logging.info('[DB]: SAVE PLOT')
+                db.session.add(plot_file)
+                db.session.commit()
+                logging.info(f"Created plot for basin: {plot_file.basin} ")
+
+            except Exception as e:
+                db.session.rollback()
+                print(e)
+
+    @staticmethod
+    def get_recent_plot():
+        logging.info('[SERVICE]: Getting recent plot')
+        logging.info('[DB]: QUERY')
+
+        plots = Plot.query.first()
+
+        return plots

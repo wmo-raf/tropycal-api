@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 
 from flask import Flask
@@ -7,8 +8,12 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from healthcheck import HealthCheck
 from troapi.scheduler import scheduler
+import matplotlib
 
 from troapi.config import SETTINGS
+
+# tell matplotlib to use backend that writes to files on the server side
+matplotlib.use('Agg')
 
 logging.basicConfig(
     level=SETTINGS.get('logging', {}).get('level'),
@@ -39,6 +44,12 @@ sys.excepthook = handle_exception
 # Config
 app.config['SQLALCHEMY_DATABASE_URI'] = SETTINGS.get('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.config['UPLOAD_FOLDER'] = SETTINGS.get('UPLOAD_FOLDER')
+
+# create upload folder
+if not os.path.isdir(app.config['UPLOAD_FOLDER']):
+    os.mkdir(app.config['UPLOAD_FOLDER'])
 
 # pagination
 app.config['ITEMS_PER_PAGE'] = SETTINGS.get('ITEMS_PER_PAGE', 20)
@@ -94,6 +105,7 @@ def internal_server_error(e):
 from troapi import commands
 
 app.cli.add_command(commands.update_storms)
+app.cli.add_command(commands.plot_summary)
 
 from troapi import tasks
 

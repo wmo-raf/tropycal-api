@@ -12,4 +12,5 @@ SETTINGS = {
     },
     'SQLALCHEMY_DATABASE_URI': os.getenv('SQLALCHEMY_DATABASE_URI'),
     'STORMS_MINUTES_UPDATE_INTERVAL': os.getenv('STORMS_MINUTES_UPDATE_INTERVAL', 5),
+    "UPLOAD_FOLDER": os.getenv('UPLOAD_FOLDER', os.path.join(os.getcwd(), 'uploads'))
 }
