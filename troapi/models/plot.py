@@ -45,5 +45,5 @@ class PlotFile(db.Model):
     def serialize(self):
         return {
             "basin": self.basin,
-            "plot": MEDIA_URL + self.file_path
+            "url": MEDIA_URL + self.file_path
         }

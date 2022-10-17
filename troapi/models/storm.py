@@ -235,5 +235,5 @@ class StormPlot(db.Model):
         return {
             "updated_on": self.updated_on.isoformat(),
             "plot_type": self.plot_type,
-            "file_path": MEDIA_URL + self.file_path
+            "url": MEDIA_URL + self.file_path
         }
