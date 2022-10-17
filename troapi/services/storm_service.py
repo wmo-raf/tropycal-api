@@ -262,7 +262,7 @@ class StormService(object):
 
         storms = Storm.query.filter_by(realtime=True).all()
 
-        logging.debug(f'[SERVICE]: Fetched {len(storms)} realtime storms from DB')
+        logging.info(f'[SERVICE]: Fetched {len(storms)} realtime storms from DB')
 
         return storms
 
