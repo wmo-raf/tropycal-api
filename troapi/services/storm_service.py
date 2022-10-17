@@ -99,32 +99,44 @@ def create_storm_plots(realtime_storm, db_storm, update_time):
         if plot_type == "observed_track":
             file_path = get_file_path(db_storm.id, plot_type, update_time)
 
-            realtime_storm.plot(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
+            try:
+                realtime_storm.plot(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
+            except Exception as e:
+                logging.info(f"[PLOTTING]: Error plotting {plot_type} for storm {db_storm.id}: {e}")
 
         if plot_type == "latest_forecast":
             file_path = get_file_path(db_storm.id, plot_type, update_time)
-
             temp_dir = tempfile.mkdtemp()
-            realtime_storm.plot_forecast_realtime(save_path=temp_dir, ssl_certificate=False)
+            try:
+                realtime_storm.plot_forecast_realtime(save_path=temp_dir, ssl_certificate=False)
 
-            for filename in os.listdir(temp_dir):
-                f = os.path.join(temp_dir, filename)
+                for filename in os.listdir(temp_dir):
+                    f = os.path.join(temp_dir, filename)
 
-                if f.endswith("_track.png"):
-                    # move to temp file
-                    shutil.move(f, file_path)
-                    os.rmdir(temp_dir)
-                break
+                    if f.endswith("_track.png"):
+                        # move to temp file
+                        shutil.move(f, file_path)
+                        os.rmdir(temp_dir)
+                    break
+            except Exception as e:
+                logging.info(f"[PLOTTING]: Error plotting {plot_type} for storm {db_storm.id}: {e}")
+                os.rmdir(temp_dir)
 
         if plot_type == "forecast_model_tracks":
             file_path = get_file_path(db_storm.id, plot_type, update_time)
 
-            realtime_storm.plot_models(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
+            try:
+                realtime_storm.plot_models(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
+            except Exception as e:
+                logging.info(f"[PLOTTING]: Error plotting {plot_type} for storm {db_storm.id}: {e}")
 
         if plot_type == "forecast_gefs_density":
             file_path = get_file_path(db_storm.id, plot_type, update_time)
 
-            realtime_storm.plot_ensembles(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
+            try:
+                realtime_storm.plot_ensembles(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
+            except Exception as e:
+                logging.info(f"[PLOTTING]: Error plotting {plot_type} for storm {db_storm.id}: {e}")
 
         if plot_type == "forecast_gefs_tracks":
             pass
@@ -145,7 +157,7 @@ def create_storm_plots(realtime_storm, db_storm, update_time):
                 db.session.commit()
                 logging.info(f"Created {plot_type} plot for storm: {db_storm.id}")
             except Exception as e:
-                logging.error(f"[PLOTTING]: Error creating plot {e}")
+                logging.error(f"[PLOTTING]: Error saving plot {plot_type} for storm {db_storm.id} to db, {e}")
                 db.session.rollback()
 
     # create plots
