@@ -225,7 +225,7 @@ class StormPlot(db.Model):
     plot_type = db.Column(db.String, nullable=False)
     file_path = db.Column(db.String, nullable=False)
 
-    storm = db.relationship("Storm", backref=backref('plot', order_by=updated_on))
+    storm = db.relationship("Storm", backref=backref('storm_plot', order_by=updated_on))
 
     def __init__(self, storm_id, updated_on, plot_type, file_path):
         self.storm_id = storm_id
