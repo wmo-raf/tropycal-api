@@ -57,5 +57,8 @@ RUN chmod +x /wait
 # copy project
 COPY . /usr/src/app/
 
+RUN mkdir -p /usr/src/app/uploads
+RUN chmod 755 /usr/src/app/uploads
+
 # run docker-entrypoint.sh
 #ENTRYPOINT ["/usr/src/app/docker-entrypoint.sh"]
