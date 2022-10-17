@@ -17,7 +17,7 @@ services:
     build: .
     image: ${API_IMAGE}
     container_name: troapi
-    command: sh -c "/wait && gunicorn --bind 0.0.0.0:8000 troapi:app"
+    command: sh -c "/wait && ./entrypoint.sh && gunicorn --bind 0.0.0.0:8000 troapi:app"
     restart: ${RESTART_POLICY}
     ports:
       - "8000:8000"

@@ -58,4 +58,4 @@ RUN chmod +x /wait
 COPY . /usr/src/app/
 
 # run docker-entrypoint.sh
-ENTRYPOINT ["/usr/src/app/docker-entrypoint.sh"]
+#ENTRYPOINT ["/usr/src/app/docker-entrypoint.sh"]
