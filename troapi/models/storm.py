@@ -3,6 +3,8 @@ from datetime import timedelta
 from numpy import isnan
 from sqlalchemy import PickleType
 from sqlalchemy.ext.mutable import MutableList
+from sqlalchemy.orm import backref
+
 from troapi.config import SETTINGS
 
 from troapi import db
@@ -223,7 +225,7 @@ class StormPlot(db.Model):
     plot_type = db.Column(db.String, nullable=False)
     file_path = db.Column(db.String, nullable=False)
 
-    storm = db.relationship("Storm", back_populates="plot")
+    storm = db.relationship("Storm", backref=backref('plot', order_by=updated_on))
 
     def __init__(self, storm_id, updated_on, plot_type, file_path):
         self.storm_id = storm_id
