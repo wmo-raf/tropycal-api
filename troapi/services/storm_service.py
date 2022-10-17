@@ -330,37 +330,26 @@ class StormService(object):
             # create realtime object
             realtime_obj = realtime.Realtime(jtwc=True, jtwc_source=jtwc_source, ssl_certificate=False)
 
-            # get all active storms
+            # get list of active storms
             realtime_storm_list = realtime_obj.list_active_storms()
 
-            # get all realtime storms from database
+            # get all existing realtime storms from database
             db_realtime_storms = StormService.get_realtime_storms()
 
-            # storms in db matching incoming realtime storms
-            existing_storms = []
-
             for db_storm in db_realtime_storms:
-                if db_storm.id in realtime_storm_list:
-                    logging.info(f"DB Storm {db_storm.id} found in incoming realtime storms")
-                    existing_storms.append(db_storm.id)
-                else:
+                if db_storm.id not in realtime_storm_list:
+                    # realtime db storm not in updated realtime list, proceed to mark as not realtime
                     try:
-                        # realtime db storm not in updated realtime list, proceed to mark as not realtime
                         logging.info(
                             f"DB Storm {db_storm.id} not found in incoming realtime storms.Mark as not realtime")
                         db_storm.realtime = False
                         db.session.commit()
                     except Exception as e:
                         db.session.rollback()
-                        logging.error(f"Error marking DB storm {db_storm.id} as not realtime")
+                        logging.error(f"Error marking DB storm {db_storm.id} as not realtime, {e}")
 
-            # get new storms not added to db
-            new_storms_list = list(set(realtime_storm_list) - set(existing_storms))
-
-            logging.info(f"New Storms not added to DB : {new_storms_list}")
-
-            for storm_id in new_storms_list:
-                # create or update storms
+            # create or update incoming realtime storms
+            for storm_id in realtime_storm_list:
                 logging.info(f"Creating new storm {storm_id}")
                 create_or_update_storm(storm_id, realtime_obj)
         except Exception as e:
