@@ -59,7 +59,7 @@ class Storm(db.Model):
     special = db.Column(MutableList.as_mutable(PickleType), nullable=True)
     wmo_basin = db.Column(MutableList.as_mutable(PickleType), nullable=False)
     forecast = db.relationship("StormForecast", back_populates="storm", uselist=False)
-    plot = db.relationship("StormPlot", back_populates="storm")
+    plot = db.relationship("StormPlot", back_populates="storm", order_by="StormPlot.updated_on")
 
     def __init__(self, **kwargs):
         for column in kwargs:
@@ -225,7 +225,7 @@ class StormPlot(db.Model):
     plot_type = db.Column(db.String, nullable=False)
     file_path = db.Column(db.String, nullable=False)
 
-    storm = db.relationship("Storm", backref=backref('storm_plot', order_by=updated_on))
+    storm = db.relationship("Storm", back_populates="plot", )
 
     def __init__(self, storm_id, updated_on, plot_type, file_path):
         self.storm_id = storm_id
