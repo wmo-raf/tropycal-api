@@ -59,7 +59,7 @@ class Storm(db.Model):
     special = db.Column(MutableList.as_mutable(PickleType), nullable=True)
     wmo_basin = db.Column(MutableList.as_mutable(PickleType), nullable=False)
     forecast = db.relationship("StormForecast", back_populates="storm", uselist=False)
-    plot = db.relationship("StormPlot", back_populates="storm", order_by="StormPlot.updated_on")
+    plot = db.relationship("StormPlot", back_populates="storm", order_by="desc(StormPlot.updated_on)")
 
     def __init__(self, **kwargs):
         for column in kwargs:
