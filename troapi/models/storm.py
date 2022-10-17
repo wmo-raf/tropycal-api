@@ -114,6 +114,11 @@ class Storm(db.Model):
         if self.forecast:
             storm["track"] = storm["track"] + self.forecast.serialize()
 
+        storm["plots"] = []
+
+        for plot in self.plot:
+            storm["plots"].append(plot.serialize())
+
         return storm
 
     @property
