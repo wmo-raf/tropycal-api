@@ -1,5 +1,9 @@
 from troapi import db
 
+from troapi.config import SETTINGS
+
+MEDIA_URL = SETTINGS.get("MEDIA_URL")
+
 
 class Plot(db.Model):
     __tablename__ = "plot"
@@ -41,5 +45,5 @@ class PlotFile(db.Model):
     def serialize(self):
         return {
             "basin": self.basin,
-            "plot": self.file_path
+            "plot": MEDIA_URL + self.file_path
         }

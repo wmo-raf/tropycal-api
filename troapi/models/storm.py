@@ -3,6 +3,7 @@ from datetime import timedelta
 from numpy import isnan
 from sqlalchemy import PickleType
 from sqlalchemy.ext.mutable import MutableList
+from troapi.config import SETTINGS
 
 from troapi import db
 
@@ -18,6 +19,8 @@ BASIN_MAPPING = {
     "conus": "CO",
     "east_conus": "EC",
 }
+
+MEDIA_URL = SETTINGS.get("MEDIA_URL")
 
 
 class Storm(db.Model):
@@ -232,5 +235,5 @@ class StormPlot(db.Model):
         return {
             "updated_on": self.updated_on.isoformat(),
             "plot_type": self.plot_type,
-            "file_path": self.file_path
+            "file_path": MEDIA_URL + self.file_path
         }
