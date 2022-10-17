@@ -199,11 +199,19 @@ def create_storm_plots(realtime_storm, db_storm, update_time):
     if latest_storm_plot:
         logging.info(f"Latest plot found was updated on: {latest_storm_plot.updated_on.isoformat()}")
         elapsed = update_time - latest_storm_plot.updated_on
+
+        seconds_to_exceed = 30 * 60
+
         # get time passed since last update
         # we update plots if only 30 minutes have passed since the last update.
         # This is implemented to save on disk space
-        if elapsed.total_seconds() >= 30 * 60:
+        if elapsed.total_seconds() >= seconds_to_exceed:
             can_create_plots = True
+        else:
+            logging.info(
+                f"Not creating new plots for storm {db_storm.id} as elapsed time ({elapsed.total_seconds()}s) "
+                f"is less than defined time ({seconds_to_exceed}s)")
+
     else:
         # no storm plots found, allow creating new
         can_create_plots = True
