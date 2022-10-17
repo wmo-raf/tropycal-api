@@ -13,6 +13,7 @@ services:
       - ${DB_EXTERNAL_PORT}:5432
     volumes:
       - troapi_db_data:/var/lib/postgresql/data/
+      - ${UPLOADS_VOLUME}:/usr/src/app/uploads
   troapi:
     build: .
     image: ${API_IMAGE}
