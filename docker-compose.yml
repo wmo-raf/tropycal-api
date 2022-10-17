@@ -20,7 +20,7 @@ services:
     command: sh -c "/wait && ./entrypoint.sh && gunicorn --bind 0.0.0.0:8000 troapi:app"
     restart: ${RESTART_POLICY}
     ports:
-      - "8000:8000"
+      - "8000"
     environment:
       - WAIT_HOSTS=troapi_db:5432
       - WAIT_TIMEOUT=60
@@ -30,5 +30,14 @@ services:
       - ${UPLOADS_VOLUME}:/usr/src/app/uploads
     depends_on:
       - troapi_db
+  troapi_nginx:
+    image: nginx:1.18.0-alpine
+    restart: ${RESTART_POLICY}
+    container_name: troapi_nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ${UPLOADS_VOLUME}:/troapi/media
+    ports:
+      - ${NGINX_PORT}:80
 volumes:
   troapi_db_data:
