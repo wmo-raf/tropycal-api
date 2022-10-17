@@ -114,13 +114,14 @@ def create_storm_plots(realtime_storm, db_storm, update_time):
                     f = os.path.join(temp_dir, filename)
 
                     if f.endswith("_track.png"):
-                        # move to temp file
-                        shutil.move(f, file_path)
-                        os.rmdir(temp_dir)
+                        # move temp file to file_path
+                        shutil.move(f, os.path.join(app.config['UPLOAD_FOLDER'], file_path))
+                        shutil.rmtree(temp_dir, ignore_errors=True)
                     break
+
             except Exception as e:
                 logging.info(f"[PLOTTING]: Error plotting {plot_type} for storm {db_storm.id}: {e}")
-                os.rmdir(temp_dir)
+                shutil.rmtree(temp_dir, ignore_errors=True)
 
         if plot_type == "forecast_model_tracks":
             file_path = get_file_path(db_storm.id, plot_type, update_time)
