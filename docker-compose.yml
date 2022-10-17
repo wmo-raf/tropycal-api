@@ -13,7 +13,6 @@ services:
       - ${DB_EXTERNAL_PORT}:5432
     volumes:
       - troapi_db_data:/var/lib/postgresql/data/
-      - ${UPLOADS_VOLUME}:/usr/src/app/uploads
   troapi:
     build: .
     image: ${API_IMAGE}
@@ -27,6 +26,8 @@ services:
       - WAIT_TIMEOUT=60
       - SQLALCHEMY_DATABASE_URI=postgresql://${DB_USER}:${DB_PASSWORD}@troapi_db:5432/${DB_NAME}
       - FLASK_APP=troapi/__init__.py
+    volumes:
+      - ${UPLOADS_VOLUME}:/usr/src/app/uploads
     depends_on:
       - troapi_db
 volumes:
