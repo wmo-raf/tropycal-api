@@ -103,6 +103,7 @@ def create_storm_plots(realtime_storm, db_storm, update_time):
                 realtime_storm.plot(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
             except Exception as e:
                 logging.info(f"[PLOTTING]: Error plotting {plot_type} for storm {db_storm.id}: {e}")
+                return
 
         if plot_type == "latest_forecast":
             file_path = get_file_path(db_storm.id, plot_type, update_time)
@@ -122,6 +123,7 @@ def create_storm_plots(realtime_storm, db_storm, update_time):
             except Exception as e:
                 logging.info(f"[PLOTTING]: Error plotting {plot_type} for storm {db_storm.id}: {e}")
                 shutil.rmtree(temp_dir, ignore_errors=True)
+                return
 
         if plot_type == "forecast_model_tracks":
             file_path = get_file_path(db_storm.id, plot_type, update_time)
@@ -130,6 +132,7 @@ def create_storm_plots(realtime_storm, db_storm, update_time):
                 realtime_storm.plot_models(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
             except Exception as e:
                 logging.info(f"[PLOTTING]: Error plotting {plot_type} for storm {db_storm.id}: {e}")
+                return
 
         if plot_type == "forecast_gefs_density":
             file_path = get_file_path(db_storm.id, plot_type, update_time)
@@ -138,6 +141,7 @@ def create_storm_plots(realtime_storm, db_storm, update_time):
                 realtime_storm.plot_ensembles(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
             except Exception as e:
                 logging.info(f"[PLOTTING]: Error plotting {plot_type} for storm {db_storm.id}: {e}")
+                return
 
         if plot_type == "forecast_gefs_tracks":
             pass
