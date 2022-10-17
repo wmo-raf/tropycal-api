@@ -120,12 +120,12 @@ class Storm(db.Model):
         storm["plots"] = {}
 
         for plot in self.plot:
-            created_on = plot.created_on.isoformat()
+            updated_on = plot.updated_on.isoformat()
 
-            if storm["plots"].get(created_on):
-                storm["plots"][created_on].append(plot.serialize())
+            if storm["plots"].get(updated_on):
+                storm["plots"][updated_on].append(plot.serialize())
             else:
-                storm["plots"][created_on] = [plot.serialize()]
+                storm["plots"][updated_on] = [plot.serialize()]
 
         return storm
 
