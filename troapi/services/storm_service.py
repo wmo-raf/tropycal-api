@@ -104,7 +104,17 @@ def create_storm_plots(realtime_storm, db_storm, update_time):
         if plot_type == "latest_forecast":
             file_path = get_file_path(db_storm.id, plot_type, update_time)
 
-            realtime_storm.plot_forecast_realtime(save_path=os.path.join(app.config['UPLOAD_FOLDER'], file_path))
+            temp_dir = tempfile.mkdtemp()
+            realtime_storm.plot_forecast_realtime(save_path=temp_dir, ssl_certificate=False)
+
+            for filename in os.listdir(temp_dir):
+                f = os.path.join(temp_dir, filename)
+
+                if f.endswith("_track.png"):
+                    # move to temp file
+                    shutil.move(f, file_path)
+                    os.rmdir(temp_dir)
+                break
 
         if plot_type == "forecast_model_tracks":
             file_path = get_file_path(db_storm.id, plot_type, update_time)
