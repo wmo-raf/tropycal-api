@@ -117,10 +117,15 @@ class Storm(db.Model):
         if self.forecast:
             storm["track"] = storm["track"] + self.forecast.serialize()
 
-        storm["plots"] = []
+        storm["plots"] = {}
 
         for plot in self.plot:
-            storm["plots"].append(plot.serialize())
+            created_on = plot.created_on.isoformat()
+
+            if storm["plots"].get(created_on):
+                storm["plots"][created_on].append(plot.serialize())
+            else:
+                storm["plots"][created_on] = [plot.serialize()]
 
         return storm
 
