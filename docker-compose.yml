@@ -26,6 +26,7 @@ services:
       - WAIT_TIMEOUT=60
       - SQLALCHEMY_DATABASE_URI=postgresql://${DB_USER}:${DB_PASSWORD}@troapi_db:5432/${DB_NAME}
       - FLASK_APP=troapi/__init__.py
+      - MEDIA_URL=${MEDIA_URL}
     volumes:
       - ${UPLOADS_VOLUME}:/usr/src/app/uploads
     depends_on:
