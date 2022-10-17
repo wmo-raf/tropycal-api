@@ -284,7 +284,7 @@ def create_or_update_storm(storm_id, realtime_obj):
         db_storm = Storm(**data)
 
         try:
-            logging.info('[DB]: ADD STORM')
+            logging.info('[DB]: CREATE STORM')
             db.session.add(db_storm)
             db.session.commit()
             logging.info(f"Created storm: {db_storm.id} ")
@@ -415,7 +415,7 @@ class StormService(object):
 
             # create or update incoming realtime storms
             for storm_id in realtime_storm_list:
-                logging.info(f"Creating new storm {storm_id}")
+                logging.info(f"Creating or updating storm: {storm_id}")
                 create_or_update_storm(storm_id, realtime_obj)
         except Exception as e:
             logging.error(f"[SERVICE]: Error updating realtime data {e}")
