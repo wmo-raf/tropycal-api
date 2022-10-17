@@ -14,6 +14,31 @@ from troapi import app, db
 from troapi.errors import StormNotFound, StormHasNoForecast
 from troapi.models import Storm, StormForecast, Plot, PlotFile, StormPlot
 
+UPLOAD_FOLDER = app.config['UPLOAD_FOLDER']
+
+
+def clean_up_storm_plots(storm_id):
+    db_storm = None
+
+    try:
+        db_storm = StormService.get_storm(storm_id)
+    except Exception:
+        pass
+
+    if db_storm:
+        for plot in db_storm.plot:
+            try:
+                db.session.delete(plot)
+                # delete plot from disk
+                os.remove(os.path.join(UPLOAD_FOLDER, plot.file_path))
+
+                logging.info(f"Deleted plot {plot.plot_type} for storm {db_storm.id}")
+            except Exception as e:
+                logging.error(f"Error deleting plot {plot.id}, {e}")
+
+        # remove storm plot directory
+        shutil.rmtree(os.path.join(UPLOAD_FOLDER, f"storm_plots/{db_storm.id}"), ignore_errors=True)
+
 
 def get_realtime_storm_data(storm, realtime_obj):
     storm_vars = {}
@@ -344,14 +369,22 @@ class StormService(object):
             for db_storm in db_realtime_storms:
                 if db_storm.id not in realtime_storm_list:
                     # realtime db storm not in updated realtime list, proceed to mark as not realtime
+                    updated = False
+
                     try:
                         logging.info(
                             f"DB Storm {db_storm.id} not found in incoming realtime storms.Mark as not realtime")
                         db_storm.realtime = False
+                        db_storm.update_time = realtime_obj.time
                         db.session.commit()
+                        updated = True
                     except Exception as e:
                         db.session.rollback()
                         logging.error(f"Error marking DB storm {db_storm.id} as not realtime, {e}")
+
+                    if updated:
+                        # clean up plots for storms that are no longer realtime
+                        clean_up_storm_plots(db_storm.id)
 
             # create or update incoming realtime storms
             for storm_id in realtime_storm_list:
