@@ -325,7 +325,6 @@ class StormService(object):
         logging.info(f"[SERVICE]: Updating storms")
 
         try:
-
             # create realtime object
             realtime_obj = realtime.Realtime(jtwc=True, jtwc_source=jtwc_source, ssl_certificate=False)
 
@@ -335,30 +334,37 @@ class StormService(object):
             # get all realtime storms from database
             db_realtime_storms = StormService.get_realtime_storms()
 
+            logging.debug(f"Fetched {len(db_realtime_storms)} realtime storms from db")
+
             # storms in db matching incoming realtime storms
             existing_storms = []
 
             for db_storm in db_realtime_storms:
                 if db_storm.id in realtime_storm_list:
+                    logging.debug(f"DB Storm {db_storm.id} found in incoming realtime storms")
                     existing_storms.append(db_storm.id)
                 else:
                     try:
                         # realtime db storm not in updated realtime list, proceed to mark as not realtime
+                        logging.debug(
+                            f"DB Storm {db_storm.id} not found in incoming realtime storms.Mark as not realtime")
                         db_storm.realtime = False
                         db.session.commit()
                     except Exception as e:
-                        print(e)
                         db.session.rollback()
+                        logging.error(f"Error marking DB storm {db_storm.id} as not realtime")
 
             # get new storms not added to db
             new_storms_list = list(set(realtime_storm_list) - set(existing_storms))
 
+            logging.debug(f"New Storms not added to DB : {new_storms_list}")
+
             for storm_id in new_storms_list:
                 # create or update storms
+                logging.debug(f"Creating new storm {storm_id}")
                 create_or_update_storm(storm_id, realtime_obj)
-
         except Exception as e:
-            print("Error", e)
+            logging.error(f"[SERVICE]: Error updating realtime data {e}")
 
     @staticmethod
     def plot_summary(jtwc_source="jtwc"):

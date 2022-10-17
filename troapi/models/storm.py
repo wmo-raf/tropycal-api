@@ -230,7 +230,7 @@ class StormPlot(db.Model):
         """Return object data in easily serializable format"""
 
         return {
-            "updated_on": self.updated_on,
+            "updated_on": self.updated_on.isoformat(),
             "plot_type": self.plot_type,
             "file_path": self.file_path
         }
